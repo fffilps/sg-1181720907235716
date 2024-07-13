@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from '@/context/AuthContext';
 import { toast } from "@/components/ui/use-toast";
-import { Bookmark } from 'lucide-react';
+import { Bookmark, Share2 } from 'lucide-react';
 
 export default function GrantCard({ grant }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -30,11 +30,33 @@ export default function GrantCard({ grant }) {
     }
 
     setIsSaved(!isSaved);
-    // Here you would typically send a request to your backend to save/unsave the grant
     toast({
       title: isSaved ? "Grant Unsaved" : "Grant Saved",
       description: isSaved ? "The grant has been removed from your saved list." : "The grant has been added to your saved list.",
     });
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: grant.title,
+        text: `Check out this grant: ${grant.title}`,
+        url: window.location.href,
+      }).then(() => {
+        toast({
+          title: "Shared Successfully",
+          description: "The grant has been shared.",
+        });
+      }).catch(console.error);
+    } else {
+      // Fallback for browsers that don't support navigator.share
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        toast({
+          title: "Link Copied",
+          description: "The grant link has been copied to your clipboard.",
+        });
+      });
+    }
   };
 
   return (
@@ -81,14 +103,24 @@ export default function GrantCard({ grant }) {
           >
             {isExpanded ? 'Show Less' : 'Learn More'}
           </Button>
-          <Button 
-            variant="outline"
-            onClick={handleSaveGrant}
-            aria-label={isSaved ? "Unsave Grant" : "Save Grant"}
-          >
-            <Bookmark className={`mr-2 h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
-            {isSaved ? 'Saved' : 'Save'}
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline"
+              onClick={handleSaveGrant}
+              aria-label={isSaved ? "Unsave Grant" : "Save Grant"}
+            >
+              <Bookmark className={`mr-2 h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+              {isSaved ? 'Saved' : 'Save'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleShare}
+              aria-label="Share Grant"
+            >
+              <Share2 className="mr-2 h-4 w-4" />
+              Share
+            </Button>
+          </div>
         </CardFooter>
       </Card>
     </motion.div>
