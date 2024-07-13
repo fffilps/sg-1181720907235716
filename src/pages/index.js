@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
+import { GetServerSideProps } from 'next';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,41 +10,56 @@ import SEO from '@/components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from "@/components/ui/use-toast";
 
-const dummyGrants = [
-  { id: 1, title: "Environmental Research Grant", category: "Environment", amount: "$50,000", deadline: "2024-06-30" },
-  { id: 2, title: "Tech Innovation Fund", category: "Technology", amount: "$100,000", deadline: "2024-07-15" },
-  { id: 3, title: "Community Development Project", category: "Social", amount: "$25,000", deadline: "2024-05-31" },
-  { id: 4, title: "Medical Research Grant", category: "Health", amount: "$75,000", deadline: "2024-08-31" },
-  { id: 5, title: "Arts and Culture Fund", category: "Arts", amount: "$30,000", deadline: "2024-09-15" },
-];
+// Simulated API call
+const fetchGrants = async () => {
+  // In a real app, this would be an actual API call
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return [
+    { id: 1, title: "Environmental Research Grant", category: "Environment", amount: "$50,000", deadline: "2024-06-30" },
+    { id: 2, title: "Tech Innovation Fund", category: "Technology", amount: "$100,000", deadline: "2024-07-15" },
+    { id: 3, title: "Community Development Project", category: "Social", amount: "$25,000", deadline: "2024-05-31" },
+    { id: 4, title: "Medical Research Grant", category: "Health", amount: "$75,000", deadline: "2024-08-31" },
+    { id: 5, title: "Arts and Culture Fund", category: "Arts", amount: "$30,000", deadline: "2024-09-15" },
+  ];
+};
 
-const featuredGrants = dummyGrants.slice(0, 3);
+export const getServerSideProps: GetServerSideProps = async () => {
+  const grants = await fetchGrants();
+  return {
+    props: {
+      initialGrants: grants,
+    },
+  };
+};
 
-const categories = ["All", ...new Set(dummyGrants.map(grant => grant.category))];
+const categories = ["All", "Environment", "Technology", "Social", "Health", "Arts"];
 
-export default function Home() {
+export default function Home({ initialGrants }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [isLoading, setIsLoading] = useState(true);
-  const [grants, setGrants] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [grants, setGrants] = useState(initialGrants);
   const [error, setError] = useState(null);
   const { toast } = useToast();
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
-    const fetchGrants = async () => {
+    const filterGrants = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setGrants(dummyGrants);
+        const filteredGrants = grants.filter(grant =>
+          (grant.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          grant.category.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) &&
+          (selectedCategory === 'All' || grant.category === selectedCategory)
+        );
+        setGrants(filteredGrants);
       } catch (err) {
-        setError('Failed to fetch grants. Please try again later.');
+        setError('Failed to filter grants. Please try again.');
         toast({
           title: "Error",
-          description: "Failed to fetch grants. Please try again later.",
+          description: "Failed to filter grants. Please try again.",
           variant: "destructive",
         });
       } finally {
@@ -51,16 +67,8 @@ export default function Home() {
       }
     };
 
-    fetchGrants();
-  }, [toast]);
-
-  const filteredGrants = useMemo(() => {
-    return grants.filter(grant =>
-      (grant.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-      grant.category.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) &&
-      (selectedCategory === 'All' || grant.category === selectedCategory)
-    );
-  }, [grants, debouncedSearchTerm, selectedCategory]);
+    filterGrants();
+  }, [debouncedSearchTerm, selectedCategory, toast]);
 
   const highlightSearchTerm = (text, term) => {
     if (!term.trim()) return text;
@@ -84,15 +92,6 @@ export default function Home() {
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Available Grants</h1>
         
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Featured Grants</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {featuredGrants.map(grant => (
-              <GrantCard key={grant.id} grant={grant} />
-            ))}
-          </div>
-        </section>
-
         <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
           <Input
             type="text"
@@ -123,8 +122,8 @@ export default function Home() {
           >
             {isLoading
               ? Array(6).fill().map((_, index) => <GrantSkeleton key={index} />)
-              : filteredGrants.length > 0
-                ? filteredGrants.map((grant) => (
+              : grants.length > 0
+                ? grants.map((grant) => (
                     <GrantCard 
                       key={grant.id} 
                       grant={{
