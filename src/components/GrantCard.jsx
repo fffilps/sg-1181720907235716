@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from '@/context/AuthContext';
 import { toast } from "@/components/ui/use-toast";
-import { Bookmark, Share2, Clock } from 'lucide-react';
+import { Bookmark, Share2, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function GrantCard({ grant }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -117,8 +117,19 @@ export default function GrantCard({ grant }) {
             onClick={() => setIsExpanded(!isExpanded)}
             aria-expanded={isExpanded}
             aria-controls={`grant-details-${grant.id}`}
+            className="flex items-center"
           >
-            {isExpanded ? 'Show Less' : 'Learn More'}
+            {isExpanded ? (
+              <>
+                <ChevronUp className="mr-2 h-4 w-4" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="mr-2 h-4 w-4" />
+                Learn More
+              </>
+            )}
           </Button>
           <div className="flex space-x-2">
             <Button 
