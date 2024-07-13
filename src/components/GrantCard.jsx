@@ -6,14 +6,27 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function GrantCard({ grant }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      setIsExpanded(!isExpanded);
+    }
+  };
 
   return (
     <motion.div
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ type: "spring", stiffness: 300 }}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
     >
-      <Card className="h-full flex flex-col">
+      <Card 
+        className={`h-full flex flex-col ${isFocused ? 'ring-2 ring-blue-500' : ''}`}
+        tabIndex={0}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        onKeyDown={handleKeyDown}
+      >
         <CardHeader>
           <CardTitle className="text-lg">{grant.title}</CardTitle>
           <Badge>{grant.category}</Badge>
