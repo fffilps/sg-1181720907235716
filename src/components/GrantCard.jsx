@@ -3,15 +3,38 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from '@/context/AuthContext';
+import { toast } from "@/components/ui/use-toast";
+import { Bookmark } from 'lucide-react';
 
 export default function GrantCard({ grant }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const { user } = useAuth();
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       setIsExpanded(!isExpanded);
     }
+  };
+
+  const handleSaveGrant = () => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to save grants.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaved(!isSaved);
+    // Here you would typically send a request to your backend to save/unsave the grant
+    toast({
+      title: isSaved ? "Grant Unsaved" : "Grant Saved",
+      description: isSaved ? "The grant has been removed from your saved list." : "The grant has been added to your saved list.",
+    });
   };
 
   return (
@@ -53,17 +76,18 @@ export default function GrantCard({ grant }) {
         <CardFooter className="flex justify-between">
           <Button 
             onClick={() => setIsExpanded(!isExpanded)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            aria-expanded={isExpanded}
+            aria-controls={`grant-details-${grant.id}`}
           >
             {isExpanded ? 'Show Less' : 'Learn More'}
           </Button>
           <Button 
             variant="outline"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            onClick={handleSaveGrant}
+            aria-label={isSaved ? "Unsave Grant" : "Save Grant"}
           >
-            Apply Now
+            <Bookmark className={`mr-2 h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+            {isSaved ? 'Saved' : 'Save'}
           </Button>
         </CardFooter>
       </Card>
