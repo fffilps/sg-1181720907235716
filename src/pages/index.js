@@ -7,6 +7,7 @@ import GrantSkeleton from '@/components/GrantSkeleton';
 import { useDebounce } from '@/hooks/useDebounce';
 import SEO from '@/components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
 
 const dummyGrants = [
   { id: 1, title: "Environmental Research Grant", category: "Environment", amount: "$50,000", deadline: "2024-06-30" },
@@ -25,36 +26,41 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isLoading, setIsLoading] = useState(true);
   const [grants, setGrants] = useState([]);
+  const [error, setError] = useState(null);
+  const { toast } = useToast();
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
-    // Simulate API call
-    setIsLoading(true);
-    setTimeout(() => {
-      setGrants(dummyGrants);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+    const fetchGrants = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setGrants(dummyGrants);
+      } catch (err) {
+        setError('Failed to fetch grants. Please try again later.');
+        toast({
+          title: "Error",
+          description: "Failed to fetch grants. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchGrants();
+  }, [toast]);
 
   const filteredGrants = useMemo(() => {
-    return dummyGrants.filter(grant =>
+    return grants.filter(grant =>
       (grant.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       grant.category.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) &&
       (selectedCategory === 'All' || grant.category === selectedCategory)
     );
-  }, [debouncedSearchTerm, selectedCategory]);
-
-  useEffect(() => {
-    setIsLoading(true);
-    // Simulate search delay
-    const timer = setTimeout(() => {
-      setGrants(filteredGrants);
-      setIsLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [filteredGrants]);
+  }, [grants, debouncedSearchTerm, selectedCategory]);
 
   const highlightSearchTerm = (text, term) => {
     if (!term.trim()) return text;
@@ -63,6 +69,10 @@ export default function Home() {
       regex.test(part) ? <mark key={index} className="bg-yellow-200 dark:bg-yellow-800">{part}</mark> : part
     );
   };
+
+  if (error) {
+    return <div className="text-center text-red-500">{error}</div>;
+  }
 
   return (
     <>
@@ -113,8 +123,8 @@ export default function Home() {
           >
             {isLoading
               ? Array(6).fill().map((_, index) => <GrantSkeleton key={index} />)
-              : grants.length > 0
-                ? grants.map((grant) => (
+              : filteredGrants.length > 0
+                ? filteredGrants.map((grant) => (
                     <GrantCard 
                       key={grant.id} 
                       grant={{
