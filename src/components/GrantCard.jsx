@@ -1,17 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from '@/context/AuthContext';
 import { toast } from "@/components/ui/use-toast";
-import { Bookmark, Share2 } from 'lucide-react';
+import { Bookmark, Share2, Clock } from 'lucide-react';
 
 export default function GrantCard({ grant }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [daysLeft, setDaysLeft] = useState(0);
   const { user } = useAuth();
+
+  useEffect(() => {
+    const deadline = new Date(grant.deadline);
+    const today = new Date();
+    const timeDiff = deadline.getTime() - today.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    setDaysLeft(daysDiff);
+  }, [grant.deadline]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -82,7 +91,11 @@ export default function GrantCard({ grant }) {
         </CardHeader>
         <CardContent className="flex-grow">
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-2"><strong>Amount:</strong> {grant.amount}</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400"><strong>Deadline:</strong> {grant.deadline}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2"><strong>Deadline:</strong> {grant.deadline}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center">
+            <Clock className="mr-2" size={16} />
+            {daysLeft > 0 ? `${daysLeft} days left to apply` : "Deadline has passed"}
+          </p>
           <AnimatePresence>
             {isExpanded && (
               <motion.div
