@@ -6,6 +6,7 @@ import GrantCard from '@/components/GrantCard';
 import GrantSkeleton from '@/components/GrantSkeleton';
 import { useDebounce } from '@/hooks/useDebounce';
 import SEO from '@/components/SEO';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const dummyGrants = [
   { id: 1, title: "Environmental Research Grant", category: "Environment", amount: "$50,000", deadline: "2024-06-30" },
@@ -14,6 +15,8 @@ const dummyGrants = [
   { id: 4, title: "Medical Research Grant", category: "Health", amount: "$75,000", deadline: "2024-08-31" },
   { id: 5, title: "Arts and Culture Fund", category: "Arts", amount: "$30,000", deadline: "2024-09-15" },
 ];
+
+const featuredGrants = dummyGrants.slice(0, 3);
 
 const categories = ["All", ...new Set(dummyGrants.map(grant => grant.category))];
 
@@ -65,6 +68,16 @@ export default function Home() {
       />
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Available Grants</h1>
+        
+        <section className="mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Featured Grants</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {featuredGrants.map(grant => (
+              <GrantCard key={grant.id} grant={grant} />
+            ))}
+          </div>
+        </section>
+
         <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
           <Input
             type="text"
@@ -86,22 +99,29 @@ export default function Home() {
           </Select>
           <Button variant="outline" onClick={() => {setSearchTerm(''); setSelectedCategory('All');}}>Reset Filters</Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {isLoading
-            ? Array(6).fill().map((_, index) => <GrantSkeleton key={index} />)
-            : grants.length > 0
-              ? grants.map((grant) => (
-                  <GrantCard 
-                    key={grant.id} 
-                    grant={{
-                      ...grant,
-                      title: highlightSearchTerm(grant.title, searchTerm)
-                    }} 
-                  />
-                ))
-              : <div className="col-span-full text-center text-gray-500 dark:text-gray-400">No grants found matching your criteria.</div>
-          }
-        </div>
+        <AnimatePresence>
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {isLoading
+              ? Array(6).fill().map((_, index) => <GrantSkeleton key={index} />)
+              : grants.length > 0
+                ? grants.map((grant) => (
+                    <GrantCard 
+                      key={grant.id} 
+                      grant={{
+                        ...grant,
+                        title: highlightSearchTerm(grant.title, searchTerm)
+                      }} 
+                    />
+                  ))
+                : <div className="col-span-full text-center text-gray-500 dark:text-gray-400">No grants found matching your criteria.</div>
+            }
+          </motion.div>
+        </AnimatePresence>
       </div>
     </>
   );
