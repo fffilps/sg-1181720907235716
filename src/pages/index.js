@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,19 +37,24 @@ export default function Home() {
     }, 1000);
   }, []);
 
+  const filteredGrants = useMemo(() => {
+    return dummyGrants.filter(grant =>
+      (grant.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      grant.category.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) &&
+      (selectedCategory === 'All' || grant.category === selectedCategory)
+    );
+  }, [debouncedSearchTerm, selectedCategory]);
+
   useEffect(() => {
-    // Simulate search API call
     setIsLoading(true);
-    setTimeout(() => {
-      const filteredGrants = dummyGrants.filter(grant =>
-        (grant.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        grant.category.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) &&
-        (selectedCategory === 'All' || grant.category === selectedCategory)
-      );
+    // Simulate search delay
+    const timer = setTimeout(() => {
       setGrants(filteredGrants);
       setIsLoading(false);
-    }, 500);
-  }, [debouncedSearchTerm, selectedCategory]);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [filteredGrants]);
 
   const highlightSearchTerm = (text, term) => {
     if (!term.trim()) return text;
