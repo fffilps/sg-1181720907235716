@@ -48,6 +48,14 @@ export default function Home() {
     }, 500);
   }, [debouncedSearchTerm, selectedCategory]);
 
+  const highlightSearchTerm = (text, term) => {
+    if (!term.trim()) return text;
+    const regex = new RegExp(`(${term})`, 'gi');
+    return text.split(regex).map((part, index) => 
+      regex.test(part) ? <mark key={index} className="bg-yellow-200 dark:bg-yellow-800">{part}</mark> : part
+    );
+  };
+
   return (
     <>
       <SEO 
@@ -82,7 +90,15 @@ export default function Home() {
           {isLoading
             ? Array(6).fill().map((_, index) => <GrantSkeleton key={index} />)
             : grants.length > 0
-              ? grants.map((grant) => <GrantCard key={grant.id} grant={grant} />)
+              ? grants.map((grant) => (
+                  <GrantCard 
+                    key={grant.id} 
+                    grant={{
+                      ...grant,
+                      title: highlightSearchTerm(grant.title, searchTerm)
+                    }} 
+                  />
+                ))
               : <div className="col-span-full text-center text-gray-500 dark:text-gray-400">No grants found matching your criteria.</div>
           }
         </div>
