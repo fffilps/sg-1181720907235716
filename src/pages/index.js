@@ -9,17 +9,18 @@ import { useDebounce } from '@/hooks/useDebounce';
 import SEO from '@/components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from "@/components/ui/use-toast";
+import { Slider } from "@/components/ui/slider";
 
 // Simulated API call
 const fetchGrants = async () => {
   // In a real app, this would be an actual API call
   await new Promise(resolve => setTimeout(resolve, 1000));
   return [
-    { id: 1, title: "Environmental Research Grant", category: "Environment", amount: "$50,000", deadline: "2024-06-30" },
-    { id: 2, title: "Tech Innovation Fund", category: "Technology", amount: "$100,000", deadline: "2024-07-15" },
-    { id: 3, title: "Community Development Project", category: "Social", amount: "$25,000", deadline: "2024-05-31" },
-    { id: 4, title: "Medical Research Grant", category: "Health", amount: "$75,000", deadline: "2024-08-31" },
-    { id: 5, title: "Arts and Culture Fund", category: "Arts", amount: "$30,000", deadline: "2024-09-15" },
+    { id: 1, title: "Environmental Research Grant", category: "Environment", amount: 50000, deadline: "2024-06-30" },
+    { id: 2, title: "Tech Innovation Fund", category: "Technology", amount: 100000, deadline: "2024-07-15" },
+    { id: 3, title: "Community Development Project", category: "Social", amount: 25000, deadline: "2024-05-31" },
+    { id: 4, title: "Medical Research Grant", category: "Health", amount: 75000, deadline: "2024-08-31" },
+    { id: 5, title: "Arts and Culture Fund", category: "Arts", amount: 30000, deadline: "2024-09-15" },
   ];
 };
 
@@ -37,6 +38,7 @@ const categories = ["All", "Environment", "Technology", "Social", "Health", "Art
 export default function Home({ initialGrants }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [amountRange, setAmountRange] = useState([0, 100000]);
   const [isLoading, setIsLoading] = useState(false);
   const [grants, setGrants] = useState(initialGrants);
   const [error, setError] = useState(null);
@@ -52,7 +54,8 @@ export default function Home({ initialGrants }) {
         const filteredGrants = grants.filter(grant =>
           (grant.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
           grant.category.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) &&
-          (selectedCategory === 'All' || grant.category === selectedCategory)
+          (selectedCategory === 'All' || grant.category === selectedCategory) &&
+          (grant.amount >= amountRange[0] && grant.amount <= amountRange[1])
         );
         setGrants(filteredGrants);
       } catch (err) {
@@ -68,7 +71,7 @@ export default function Home({ initialGrants }) {
     };
 
     filterGrants();
-  }, [debouncedSearchTerm, selectedCategory, toast]);
+  }, [debouncedSearchTerm, selectedCategory, amountRange, toast]);
 
   const highlightSearchTerm = (text, term) => {
     if (!term.trim()) return text;
@@ -111,7 +114,21 @@ export default function Home({ initialGrants }) {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={() => {setSearchTerm(''); setSelectedCategory('All');}}>Reset Filters</Button>
+          <div className="w-full max-w-xs">
+            <label htmlFor="amount-range" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Amount Range: ${amountRange[0]} - ${amountRange[1]}
+            </label>
+            <Slider
+              id="amount-range"
+              min={0}
+              max={100000}
+              step={1000}
+              value={amountRange}
+              onValueChange={setAmountRange}
+              className="mt-2"
+            />
+          </div>
+          <Button variant="outline" onClick={() => {setSearchTerm(''); setSelectedCategory('All'); setAmountRange([0, 100000]);}}>Reset Filters</Button>
         </div>
         <AnimatePresence>
           <motion.div 
