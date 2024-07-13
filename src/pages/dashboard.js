@@ -7,11 +7,12 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import SEO from '@/components/SEO';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useToast } from "@/components/ui/use-toast";
 
 const dummyApplications = [
-  { id: 1, grantTitle: "Environmental Research Grant", status: "Pending" },
-  { id: 2, grantTitle: "Tech Innovation Fund", status: "Approved" },
-  { id: 3, grantTitle: "Community Development Project", status: "Rejected" },
+  { id: 1, grantTitle: "Environmental Research Grant", status: "Pending", progress: 50 },
+  { id: 2, grantTitle: "Tech Innovation Fund", status: "Approved", progress: 100 },
+  { id: 3, grantTitle: "Community Development Project", status: "Rejected", progress: 75 },
 ];
 
 const dummySavedGrants = [
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const [applications, setApplications] = useState([]);
   const [savedGrants, setSavedGrants] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -48,6 +50,14 @@ export default function Dashboard() {
   const filteredSavedGrants = savedGrants.filter(grant =>
     grant.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleRemoveSavedGrant = (id) => {
+    setSavedGrants(savedGrants.filter(grant => grant.id !== id));
+    toast({
+      title: "Grant Removed",
+      description: "The grant has been removed from your saved list.",
+    });
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -121,17 +131,22 @@ export default function Dashboard() {
               <CardTitle>Recent Applications</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2">
+              <ul className="space-y-4">
                 {filteredApplications.map(app => (
-                  <li key={app.id} className="flex justify-between items-center">
-                    <span>{app.grantTitle}</span>
-                    <span className={`px-2 py-1 rounded-full text-sm ${
-                      app.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                      app.status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {app.status}
-                    </span>
+                  <li key={app.id} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span>{app.grantTitle}</span>
+                      <span className={`px-2 py-1 rounded-full text-sm ${
+                        app.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                        app.status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {app.status}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                      <div className="bg-blue-600 h-2.5 rounded-full" style={{width: `${app.progress}%`}}></div>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -156,7 +171,10 @@ export default function Dashboard() {
                 {filteredSavedGrants.map(grant => (
                   <li key={grant.id} className="flex justify-between items-center">
                     <span>{grant.title}</span>
-                    <span className="text-sm text-gray-500">Deadline: {grant.deadline}</span>
+                    <div>
+                      <span className="text-sm text-gray-500 mr-2">Deadline: {grant.deadline}</span>
+                      <Button variant="outline" size="sm" onClick={() => handleRemoveSavedGrant(grant.id)}>Remove</Button>
+                    </div>
                   </li>
                 ))}
               </ul>
