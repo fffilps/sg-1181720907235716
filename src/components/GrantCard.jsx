@@ -71,9 +71,11 @@ export default function GrantCard({ grant }) {
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         onKeyDown={handleKeyDown}
+        role="article"
+        aria-labelledby={`grant-title-${grant.id}`}
       >
         <CardHeader>
-          <CardTitle className="text-lg">{grant.title}</CardTitle>
+          <CardTitle id={`grant-title-${grant.id}`} className="text-lg">{grant.title}</CardTitle>
           <Badge>{grant.category}</Badge>
         </CardHeader>
         <CardContent className="flex-grow">
@@ -108,9 +110,10 @@ export default function GrantCard({ grant }) {
               variant="outline"
               onClick={handleSaveGrant}
               aria-label={isSaved ? "Unsave Grant" : "Save Grant"}
+              aria-pressed={isSaved}
             >
               <Bookmark className={`mr-2 h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
-              {isSaved ? 'Saved' : 'Save'}
+              <span className="sr-only">{isSaved ? 'Saved' : 'Save'}</span>
             </Button>
             <Button
               variant="outline"
@@ -118,7 +121,7 @@ export default function GrantCard({ grant }) {
               aria-label="Share Grant"
             >
               <Share2 className="mr-2 h-4 w-4" />
-              Share
+              <span className="sr-only">Share</span>
             </Button>
           </div>
         </CardFooter>
