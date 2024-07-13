@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import Notifications from '@/components/Notifications';
 
 const Layout = ({ children }) => {
   const router = useRouter();
@@ -40,7 +41,11 @@ const Layout = ({ children }) => {
               </div>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
-              <Button variant="outline" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+              <Button 
+                variant="outline" 
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              >
                 {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
               <Button onClick={handleAuth}>
@@ -67,6 +72,7 @@ const Layout = ({ children }) => {
           </div>
         </div>
       </footer>
+      <Notifications />
     </div>
   );
 };
