@@ -3,10 +3,20 @@ import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const Layout = ({ children }) => {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
+
+  const handleAuth = () => {
+    if (user) {
+      logout();
+    } else {
+      router.push('/login');
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -33,7 +43,9 @@ const Layout = ({ children }) => {
               <Button variant="outline" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
                 {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
-              <Button variant="outline">Sign In</Button>
+              <Button onClick={handleAuth}>
+                {user ? 'Sign Out' : 'Sign In'}
+              </Button>
             </div>
           </div>
         </nav>

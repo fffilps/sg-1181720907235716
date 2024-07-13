@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import GrantCard from '@/components/GrantCard';
+import GrantSkeleton from '@/components/GrantSkeleton';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const dummyGrants = [
   { id: 1, title: "Environmental Research Grant", category: "Environment", amount: "$50,000", deadline: "2024-06-30" },
@@ -17,21 +19,33 @@ const categories = ["All", ...new Set(dummyGrants.map(grant => grant.category))]
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [grants, setGrants] = useState([]);
 
-  const filteredGrants = dummyGrants.filter(grant =>
-    (grant.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    grant.category.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (selectedCategory === 'All' || grant.category === selectedCategory)
-  );
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  const handleSearch = () => {
-    setIsLoading(true);
+  useEffect(() => {
     // Simulate API call
+    setIsLoading(true);
     setTimeout(() => {
+      setGrants(dummyGrants);
       setIsLoading(false);
     }, 1000);
-  };
+  }, []);
+
+  useEffect(() => {
+    // Simulate search API call
+    setIsLoading(true);
+    setTimeout(() => {
+      const filteredGrants = dummyGrants.filter(grant =>
+        (grant.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        grant.category.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) &&
+        (selectedCategory === 'All' || grant.category === selectedCategory)
+      );
+      setGrants(filteredGrants);
+      setIsLoading(false);
+    }, 500);
+  }, [debouncedSearchTerm, selectedCategory]);
 
   return (
     <div className="space-y-6">
@@ -43,6 +57,7 @@ export default function Home() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
+          aria-label="Search grants"
         />
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-[180px]">
@@ -54,22 +69,16 @@ export default function Home() {
             ))}
           </SelectContent>
         </Select>
-        <Button onClick={handleSearch} disabled={isLoading}>
-          {isLoading ? 'Searching...' : 'Search'}
-        </Button>
         <Button variant="outline" onClick={() => {setSearchTerm(''); setSelectedCategory('All');}}>Reset Filters</Button>
       </div>
-      {isLoading ? (
-        <div className="text-center">Loading...</div>
-      ) : filteredGrants.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGrants.map((grant) => (
-            <GrantCard key={grant.id} grant={grant} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center text-gray-500 dark:text-gray-400">No grants found matching your criteria.</div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {isLoading
+          ? Array(6).fill().map((_, index) => <GrantSkeleton key={index} />)
+          : grants.length > 0
+            ? grants.map((grant) => <GrantCard key={grant.id} grant={grant} />)
+            : <div className="col-span-full text-center text-gray-500 dark:text-gray-400">No grants found matching your criteria.</div>
+        }
+      </div>
     </div>
   );
 }
