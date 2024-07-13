@@ -64,6 +64,8 @@ export default function GrantCard({ grant }) {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
     >
       <Card 
         className={`h-full flex flex-col ${isFocused ? 'ring-2 ring-blue-500' : ''}`}
