@@ -3,15 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function SavedSearches({ onApplySearch }) {
   const [savedSearches, setSavedSearches] = useState([]);
   const [newSearchName, setNewSearchName] = useState('');
+  const [emailNotifications, setEmailNotifications] = useState(false);
 
   useEffect(() => {
     // Load saved searches from localStorage
     const loadedSearches = JSON.parse(localStorage.getItem('savedSearches') || '[]');
     setSavedSearches(loadedSearches);
+    setEmailNotifications(JSON.parse(localStorage.getItem('emailNotifications') || 'false'));
   }, []);
 
   const saveCurrentSearch = () => {
@@ -59,6 +63,16 @@ export default function SavedSearches({ onApplySearch }) {
     });
   };
 
+  const toggleEmailNotifications = () => {
+    const newValue = !emailNotifications;
+    setEmailNotifications(newValue);
+    localStorage.setItem('emailNotifications', JSON.stringify(newValue));
+    toast({
+      title: newValue ? "Email Notifications Enabled" : "Email Notifications Disabled",
+      description: newValue ? "You will receive email notifications for new grants matching your saved searches." : "You will no longer receive email notifications for new grants.",
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -89,6 +103,14 @@ export default function SavedSearches({ onApplySearch }) {
               </div>
             </div>
           ))}
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="email-notifications"
+              checked={emailNotifications}
+              onCheckedChange={toggleEmailNotifications}
+            />
+            <Label htmlFor="email-notifications">Receive email notifications for new matching grants</Label>
+          </div>
         </div>
       </CardContent>
     </Card>
