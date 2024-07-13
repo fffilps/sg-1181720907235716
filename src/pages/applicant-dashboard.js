@@ -7,6 +7,7 @@ import SEO from '@/components/SEO';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useToast } from "@/components/ui/use-toast";
+import MessagingSystem from '@/components/MessagingSystem';
 
 const dummyApplications = [
   { id: 1, grantTitle: "Environmental Research Grant", status: "Pending", progress: 50 },
@@ -17,14 +18,34 @@ const dummyApplications = [
 export default function ApplicantDashboard() {
   const { user, loading } = useAuth();
   const [applications, setApplications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    const fetchApplications = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // In a real app, you'd fetch this data from your backend
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+        setApplications(dummyApplications);
+      } catch (err) {
+        setError('Failed to fetch applications. Please try again.');
+        toast({
+          title: "Error",
+          description: "Failed to fetch applications. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (user) {
-      // In a real app, you'd fetch this data from your backend
-      setApplications(dummyApplications);
+      fetchApplications();
     }
-  }, [user]);
+  }, [user, toast]);
 
   const applicationData = [
     { name: 'Pending', value: applications.filter(app => app.status === 'Pending').length },
@@ -34,8 +55,12 @@ export default function ApplicantDashboard() {
 
   const COLORS = ['#FFBB28', '#00C49F', '#FF8042'];
 
-  if (loading) {
+  if (loading || isLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
   }
 
   if (!user) {
@@ -126,6 +151,7 @@ export default function ApplicantDashboard() {
           </Card>
         </motion.div>
       </div>
+      <MessagingSystem />
     </>
   );
 }

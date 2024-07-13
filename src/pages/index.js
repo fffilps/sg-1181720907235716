@@ -81,10 +81,6 @@ export default function Home({ initialGrants }) {
     );
   };
 
-  if (error) {
-    return <div className="text-center text-red-500">{error}</div>;
-  }
-
   return (
     <>
       <SEO 
@@ -130,6 +126,7 @@ export default function Home({ initialGrants }) {
           </div>
           <Button variant="outline" onClick={() => {setSearchTerm(''); setSelectedCategory('All'); setAmountRange([0, 100000]);}}>Reset Filters</Button>
         </div>
+        {error && <div className="text-red-500">{error}</div>}
         <AnimatePresence>
           <motion.div 
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
