@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 export default function Account() {
   const [user, setUser] = useState({
@@ -18,6 +19,14 @@ export default function Account() {
     new: '',
     confirm: '',
   });
+
+  const applicationData = [
+    { name: 'Pending', value: 5 },
+    { name: 'Approved', value: 3 },
+    { name: 'Rejected', value: 2 },
+  ];
+
+  const COLORS = ['#FFBB28', '#00C49F', '#FF8042'];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -63,6 +72,7 @@ export default function Account() {
         <TabsList className="mb-4">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="password">Change Password</TabsTrigger>
+          <TabsTrigger value="stats">Application Stats</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
           <Card>
@@ -143,6 +153,36 @@ export default function Account() {
                 </div>
                 <Button type="submit">Change Password</Button>
               </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="stats">
+          <Card>
+            <CardHeader>
+              <CardTitle>Application Statistics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={applicationData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {applicationData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
