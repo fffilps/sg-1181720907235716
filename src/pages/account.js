@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/use-toast";
 
 export default function Account() {
   const [user, setUser] = useState({
@@ -31,17 +32,28 @@ export default function Account() {
   const handleProfileSubmit = (e) => {
     e.preventDefault();
     console.log('Updated user data:', user);
-    alert('Profile updated successfully!');
+    toast({
+      title: "Profile Updated",
+      description: "Your profile has been successfully updated.",
+    });
   };
 
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
     if (passwords.new !== passwords.confirm) {
-      alert('New passwords do not match!');
+      toast({
+        title: "Error",
+        description: "New passwords do not match!",
+        variant: "destructive",
+      });
       return;
     }
     console.log('Password change requested');
-    alert('Password changed successfully!');
+    toast({
+      title: "Password Changed",
+      description: "Your password has been successfully updated.",
+    });
+    setPasswords({ current: '', new: '', confirm: '' });
   };
 
   return (
