@@ -10,6 +10,7 @@ import SEO from '@/components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from "@/components/ui/use-toast";
 import { Slider } from "@/components/ui/slider";
+import CreateProjectForm from '@/components/CreateProjectForm';
 
 // Simulated API call
 const fetchApplicants = async () => {
@@ -101,6 +102,10 @@ export default function Home({ initialApplicants }) {
     );
   };
 
+  const handleProjectCreated = (newProject) => {
+    setApplicants(prevApplicants => [...prevApplicants, newProject]);
+  };
+
   return (
     <>
       <SEO 
@@ -145,6 +150,7 @@ export default function Home({ initialApplicants }) {
             />
           </div>
           <Button variant="outline" onClick={() => {setSearchTerm(''); setSelectedCategory('All'); setFundingRange([0, 100000]);}}>Reset Filters</Button>
+          <CreateProjectForm onProjectCreated={handleProjectCreated} />
         </div>
         {error && <div className="text-red-500">{error}</div>}
         <AnimatePresence>
