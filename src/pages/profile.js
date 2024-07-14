@@ -8,16 +8,20 @@ import { toast } from "@/components/ui/use-toast";
 import SEO from '@/components/SEO';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import MilestoneTracker from '@/components/MilestoneTracker';
 
 export default function Profile() {
   const { user, loading } = useAuth();
   const [profile, setProfile] = useState({
     name: '',
     email: '',
-    organization: '',
+    projectTitle: '',
+    category: '',
+    fundingNeeded: '',
+    projectDeadline: '',
     bio: '',
-    website: '',
   });
+  const [milestones, setMilestones] = useState([]);
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -28,10 +32,13 @@ export default function Profile() {
       setProfile({
         name: user.name || '',
         email: user.email || '',
-        organization: user.organization || '',
+        projectTitle: user.projectTitle || '',
+        category: user.category || '',
+        fundingNeeded: user.fundingNeeded || '',
+        projectDeadline: user.projectDeadline || '',
         bio: user.bio || '',
-        website: user.website || '',
       });
+      setMilestones(user.milestones || []);
     }
   }, [user]);
 
@@ -54,14 +61,23 @@ export default function Profile() {
     });
   };
 
-  const handleNotificationSubmit = (e) => {
+  const handleMilestoneToggle = (id) => {
+    setMilestones(prevMilestones =>
+      prevMilestones.map(milestone =>
+        milestone.id === id ? { ...milestone, completed: !milestone.completed } : milestone
+      )
+    );
+  };
+
+  const handleAddMilestone = (e) => {
     e.preventDefault();
-    // Here you would typically send the updated notification settings to your backend
-    console.log('Updated notification settings:', notifications);
-    toast({
-      title: "Notification Settings Updated",
-      description: "Your notification preferences have been saved.",
-    });
+    const newMilestone = {
+      id: Date.now(),
+      title: e.target.elements.newMilestone.value,
+      completed: false,
+    };
+    setMilestones([...milestones, newMilestone]);
+    e.target.reset();
   };
 
   if (loading) {
@@ -76,14 +92,15 @@ export default function Profile() {
     <>
       <SEO 
         title="User Profile"
-        description="Manage your GrantHub user profile and settings."
-        keywords={['profile', 'user', 'settings', 'account']}
+        description="Manage your FundHub user profile and project details."
+        keywords={['profile', 'user', 'settings', 'project', 'funding']}
       />
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-6">User Profile</h1>
         <Tabs defaultValue="profile">
           <TabsList>
             <TabsTrigger value="profile">Profile Information</TabsTrigger>
+            <TabsTrigger value="project">Project Details</TabsTrigger>
             <TabsTrigger value="notifications">Notification Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="profile">
@@ -113,15 +130,6 @@ export default function Profile() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="organization">Organization</Label>
-                    <Input
-                      id="organization"
-                      name="organization"
-                      value={profile.organization}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="bio">Bio</Label>
                     <Input
                       id="bio"
@@ -130,17 +138,70 @@ export default function Profile() {
                       onChange={handleInputChange}
                     />
                   </div>
+                  <Button type="submit">Update Profile</Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="project">
+            <Card>
+              <CardHeader>
+                <CardTitle>Project Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
+                    <Label htmlFor="projectTitle">Project Title</Label>
                     <Input
-                      id="website"
-                      name="website"
-                      value={profile.website}
+                      id="projectTitle"
+                      name="projectTitle"
+                      value={profile.projectTitle}
                       onChange={handleInputChange}
                     />
                   </div>
-                  <Button type="submit">Update Profile</Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Input
+                      id="category"
+                      name="category"
+                      value={profile.category}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fundingNeeded">Funding Needed</Label>
+                    <Input
+                      id="fundingNeeded"
+                      name="fundingNeeded"
+                      type="number"
+                      value={profile.fundingNeeded}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="projectDeadline">Project Deadline</Label>
+                    <Input
+                      id="projectDeadline"
+                      name="projectDeadline"
+                      type="date"
+                      value={profile.projectDeadline}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <Button type="submit">Update Project Details</Button>
                 </form>
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-2">Project Milestones</h3>
+                  <MilestoneTracker milestones={milestones} onToggle={handleMilestoneToggle} />
+                  <form onSubmit={handleAddMilestone} className="mt-4">
+                    <Input
+                      name="newMilestone"
+                      placeholder="Add new milestone"
+                      className="mb-2"
+                    />
+                    <Button type="submit">Add Milestone</Button>
+                  </form>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -150,7 +211,7 @@ export default function Profile() {
                 <CardTitle>Notification Preferences</CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleNotificationSubmit} className="space-y-4">
+                <form className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="emailNotifications">Email Notifications</Label>
                     <Switch
@@ -167,7 +228,6 @@ export default function Profile() {
                       onCheckedChange={() => handleNotificationChange('push')}
                     />
                   </div>
-                  <Button type="submit">Save Notification Settings</Button>
                 </form>
               </CardContent>
             </Card>
