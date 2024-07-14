@@ -19,27 +19,47 @@ const schema = z.object({
 
 const CreateProjectForm = ({ onProjectCreated }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm({
     resolver: zodResolver(schema)
   });
 
-  const onSubmit = (data) => {
-    const newProject = {
-      ...data,
-      id: Date.now(),
-      milestones: [
-        { id: 1, title: "Project Start", completed: true },
-        { id: 2, title: "Midway Review", completed: false },
-        { id: 3, title: "Final Submission", completed: false },
-      ],
-    };
-    onProjectCreated(newProject);
-    toast({
-      title: "Project Created",
-      description: "Your new project has been added to the list of applicants.",
-    });
-    reset();
-    setIsOpen(false);
+  const formatFunding = (value) => {
+    const number = parseFloat(value.replace(/[^\d.-]/g, ''));
+    if (isNaN(number)) return '$';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(number);
+  };
+
+  const onSubmit = async (data) => {
+    setIsSubmitting(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const newProject = {
+        ...data,
+        id: Date.now(),
+        milestones: [
+          { id: 1, title: "Project Start", completed: true },
+          { id: 2, title: "Midway Review", completed: false },
+          { id: 3, title: "Final Submission", completed: false },
+        ],
+      };
+      onProjectCreated(newProject);
+      toast({
+        title: "Project Created",
+        description: "Your new project has been added to the list of applicants.",
+      });
+      reset();
+      setIsOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create project. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -90,8 +110,12 @@ const CreateProjectForm = ({ onProjectCreated }) => {
             <Label htmlFor="fundingNeeded">Funding Needed</Label>
             <Input
               id="fundingNeeded"
-              type="number"
-              {...register("fundingNeeded", { valueAsNumber: true })}
+              {...register("fundingNeeded", {
+                setValueAs: (v) => parseFloat(v.replace(/[^\d.-]/g, '')),
+                onChange: (e) => {
+                  e.target.value = formatFunding(e.target.value);
+                },
+              })}
               aria-invalid={errors.fundingNeeded ? "true" : "false"}
             />
             {errors.fundingNeeded && <p className="text-red-500 text-sm">{errors.fundingNeeded.message}</p>}
@@ -106,7 +130,9 @@ const CreateProjectForm = ({ onProjectCreated }) => {
             />
             {errors.projectDeadline && <p className="text-red-500 text-sm">{errors.projectDeadline.message}</p>}
           </div>
-          <Button type="submit">Create Project</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Creating..." : "Create Project"}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>
