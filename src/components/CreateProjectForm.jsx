@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,28 +9,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
 
+const schema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters long" }),
+  projectTitle: z.string().min(5, { message: "Project title must be at least 5 characters long" }),
+  category: z.string().min(1, { message: "Please select a category" }),
+  fundingNeeded: z.number().min(1000, { message: "Funding needed must be at least $1,000" }),
+  projectDeadline: z.string().refine((date) => new Date(date) > new Date(), { message: "Deadline must be in the future" }),
+});
+
 const CreateProjectForm = ({ onProjectCreated }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    projectTitle: '',
-    category: '',
-    fundingNeeded: '',
-    projectDeadline: '',
+  const [isOpen, setIsOpen] = useState(false);
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm({
+    resolver: zodResolver(schema)
   });
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevData => ({ ...prevData, [name]: value }));
-  };
-
-  const handleCategoryChange = (value) => {
-    setFormData(prevData => ({ ...prevData, category: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const onSubmit = (data) => {
     const newProject = {
-      ...formData,
+      ...data,
       id: Date.now(),
       milestones: [
         { id: 1, title: "Project Start", completed: true },
@@ -40,17 +38,12 @@ const CreateProjectForm = ({ onProjectCreated }) => {
       title: "Project Created",
       description: "Your new project has been added to the list of applicants.",
     });
-    setFormData({
-      name: '',
-      projectTitle: '',
-      category: '',
-      fundingNeeded: '',
-      projectDeadline: '',
-    });
+    reset();
+    setIsOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button>Create New Project</Button>
       </DialogTrigger>
@@ -58,30 +51,28 @@ const CreateProjectForm = ({ onProjectCreated }) => {
         <DialogHeader>
           <DialogTitle>Create New Project</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Your Name</Label>
             <Input
               id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
+              {...register("name")}
+              aria-invalid={errors.name ? "true" : "false"}
             />
+            {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="projectTitle">Project Title</Label>
             <Input
               id="projectTitle"
-              name="projectTitle"
-              value={formData.projectTitle}
-              onChange={handleInputChange}
-              required
+              {...register("projectTitle")}
+              aria-invalid={errors.projectTitle ? "true" : "false"}
             />
+            {errors.projectTitle && <p className="text-red-500 text-sm">{errors.projectTitle.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
-            <Select onValueChange={handleCategoryChange} value={formData.category}>
+            <Select onValueChange={(value) => setValue("category", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
@@ -93,28 +84,27 @@ const CreateProjectForm = ({ onProjectCreated }) => {
                 <SelectItem value="Arts">Arts</SelectItem>
               </SelectContent>
             </Select>
+            {errors.category && <p className="text-red-500 text-sm">{errors.category.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="fundingNeeded">Funding Needed</Label>
             <Input
               id="fundingNeeded"
-              name="fundingNeeded"
               type="number"
-              value={formData.fundingNeeded}
-              onChange={handleInputChange}
-              required
+              {...register("fundingNeeded", { valueAsNumber: true })}
+              aria-invalid={errors.fundingNeeded ? "true" : "false"}
             />
+            {errors.fundingNeeded && <p className="text-red-500 text-sm">{errors.fundingNeeded.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="projectDeadline">Project Deadline</Label>
             <Input
               id="projectDeadline"
-              name="projectDeadline"
               type="date"
-              value={formData.projectDeadline}
-              onChange={handleInputChange}
-              required
+              {...register("projectDeadline")}
+              aria-invalid={errors.projectDeadline ? "true" : "false"}
             />
+            {errors.projectDeadline && <p className="text-red-500 text-sm">{errors.projectDeadline.message}</p>}
           </div>
           <Button type="submit">Create Project</Button>
         </form>
