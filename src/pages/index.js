@@ -102,7 +102,20 @@ export default function Home({ initialApplicants }) {
   };
 
   const handleProjectCreated = (newProject) => {
-    setApplicants(prevApplicants => [...prevApplicants, newProject]);
+    setApplicants(prevApplicants => {
+      const updatedApplicants = [...prevApplicants, newProject];
+      // Re-apply filters
+      return updatedApplicants.filter(applicant =>
+        (applicant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        applicant.projectTitle.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (selectedCategory === 'All' || applicant.category === selectedCategory) &&
+        (applicant.fundingNeeded >= fundingRange[0] && applicant.fundingNeeded <= fundingRange[1])
+      );
+    });
+    toast({
+      title: "Project Added",
+      description: "Your new project has been successfully added to the list.",
+    });
   };
 
   return (
