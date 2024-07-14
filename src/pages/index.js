@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { GetServerSideProps } from 'next';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -45,14 +44,14 @@ const fetchApplicants = async () => {
   ];
 };
 
-export const getServerSideProps: GetServerSideProps = async () => {
+export async function getServerSideProps() {
   const applicants = await fetchApplicants();
   return {
     props: {
       initialApplicants: applicants,
     },
   };
-};
+}
 
 const categories = ["All", "Environment", "Technology", "Social", "Health", "Arts"];
 
